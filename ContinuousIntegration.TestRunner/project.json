@@ -1,0 +1,29 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "CIService Console Application",
+  "authors": [ "mika" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "dependencies": {
+    "Microsoft.Framework.Configuration": "1.0.0-beta8-15635",
+    "Microsoft.Framework.Configuration.Json": "1.0.0-beta8-15635",
+    "Microsoft.Framework.Logging.Abstractions": "1.0.0-beta8-15621",
+    "Microsoft.Framework.Logging": "1.0.0-beta8-15621",
+    "xunit": "2.1.0",
+    "Microsoft.Framework.Logging.Console": "1.0.0-beta8-15621",
+    "ContinuousIntegration.Common": ""
+  },
+
+  "commands": {
+    "CIService": "CIService"
+  },
+
+  "frameworks": {
+    "dnx451": {
+      "frameworkAssemblies": {
+      }
+    }
+  }
+}
