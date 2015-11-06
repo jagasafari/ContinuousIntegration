@@ -7,7 +7,7 @@ namespace ContinuousIntegration.TestRunner
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using ContinuousIntegration.Common;
+    using Common;
     using Microsoft.Framework.Logging;
 
     public class TestRunner
@@ -77,7 +77,7 @@ namespace ContinuousIntegration.TestRunner
                 ExpectedExit = true
             };
             _logger.Info($"Testing {testProjectPath} project");
-            processExecutor.ExecuteAndWait(DnxTool.GetDnx(),
+            processExecutor.ExecuteAndWait(DnxInformation.GetDnx(),
                 $"-p {testProjectPath} test",
                 x => x.Equals("Failed"));
             _logger.Info("Tests Completed!");
