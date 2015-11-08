@@ -3,14 +3,13 @@ namespace ContinuousIntegration.TestRunner
     using System;
     using System.IO;
     using System.Linq;
-    using Microsoft.Framework.Logging;
 
     internal class ModifiedFileFounder
     {
-        private readonly ILogger _logger;
+        private readonly ApplicatinLogger _logger;
         private readonly string _solutionPath;
 
-        public ModifiedFileFounder(ILogger logger, string solutionPath)
+        public ModifiedFileFounder(ApplicatinLogger logger, string solutionPath)
         {
             _logger = logger;
             _solutionPath = solutionPath;

@@ -8,25 +8,25 @@ namespace ContinuousIntegration.TestRunner
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
-    using Microsoft.Framework.Logging;
 
     public class TestRunner
     {
         private readonly ModifiedFileFounder _founder;
-        private readonly ILogger _logger;
+        private readonly ApplicatinLogger _logger;
         private readonly Mailer _mailer;
         private readonly CiTestConfiguration _testConfiguration;
         private DateTime _lastRunTime;
 
-        public TestRunner(ILogger logger, CiConfigurationReader ciConfigurationReader, Mailer mailer)
+        public TestRunner(ApplicatinLogger logger,
+            CiConfigurationReader ciConfigurationReader, Mailer mailer)
         {
             _logger = logger;
             _testConfiguration =
                 ciConfigurationReader.GetTestConfiguration();
             _mailer = mailer;
             _lastRunTime = DateTime.UtcNow.AddYears(-1000);
-            _founder = new ModifiedFileFounder(_logger,
-                _testConfiguration.SolutionPath);
+            _founder = new ModifiedFileFounder(
+                _logger, _testConfiguration.SolutionPath);
         }
 
         public void Run()
@@ -37,7 +37,8 @@ namespace ContinuousIntegration.TestRunner
                 {
                     var testResults = RunTests();
                     _logger.Info("Sending Report email");
-                    _mailer.SendReportEmail(_mailer.CreateMessageEmail(testResults, "Report"));
+                    _mailer.SendReportEmail(
+                        _mailer.CreateMessageEmail(testResults, "Report"));
                 }
                 else
                 {
@@ -63,22 +64,19 @@ namespace ContinuousIntegration.TestRunner
         {
             return _testConfiguration.TestProjects.Select(
                 testProject =>
-                    $@"""{
-                        Path.Combine(
-                            _testConfiguration.SolutionPath,
-                            testProject)}""");
+                    Path.Combine(
+                        _testConfiguration.SolutionPath,
+                        testProject));
         }
 
         private void RunTest(string testProjectPath,
             StringBuilder stringBuilder)
         {
-            var processExecutor = new ProcessExecutor
-            {
-                ExpectedExit = true
-            };
+            Directory.SetCurrentDirectory(testProjectPath);
+            var processExecutor = new OutputCaptureProcessExecutor();
             _logger.Info($"Testing {testProjectPath} project");
-            processExecutor.ExecuteAndWait(DnxInformation.GetDnx(),
-                $"-p {testProjectPath} test",
+            processExecutor.ExecuteAndWait(DnxInformation.DnxPath,
+                $@"-p ""{testProjectPath}"" test",
                 x => x.Equals("Failed"));
             _logger.Info("Tests Completed!");
             stringBuilder.Append(processExecutor.Output);

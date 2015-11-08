@@ -8,9 +8,9 @@
     {
         private readonly CiMailConfiguration _mailConfiguration;
 
-        public Mailer(CiMailConfiguration mailConfiguration)
+        public Mailer(CiConfigurationReader reader)
         {
-            _mailConfiguration = mailConfiguration;
+            _mailConfiguration = reader.GetMailConfiguration();
         }
 
         public void SendReportEmail(MailMessage mailMessage)

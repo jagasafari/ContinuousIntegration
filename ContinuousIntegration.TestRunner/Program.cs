@@ -1,46 +1,46 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
-    using Microsoft.Framework.Logging;
+    using Microsoft.Dnx.Runtime;
+    using Microsoft.Framework.DependencyInjection;
 
     public class Program
     {
-        private ILogger _logger;
-        private Mailer _mailer;
-        private TestRunner _testRunner;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ApplicatinLogger _logger;
 
-        public Program()
+        public Program(IApplicationEnvironment env)
         {
-            InitializeCiProgram();
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddLogging()
+                .AddScoped<ApplicationConfiguration>()
+                .AddScoped<CiConfigurationReader>()
+                .AddScoped<Mailer>()
+                .AddScoped<TestRunner>()
+                .AddScoped<ApplicatinLogger>()
+                .AddInstance(env);
+
+            _serviceProvider = serviceCollection.BuildServiceProvider();
+
+            _logger = _serviceProvider.GetService<ApplicatinLogger>();
+            _logger.Info("Test Runner Initialized!");
         }
 
         public void Main(string[] args)
         {
             try
             {
-                _testRunner.Run();
+                _serviceProvider.GetService<TestRunner>().Run();
             }
             catch(Exception e)
             {
                 _logger.Error($"Excepion cought : {Environment.NewLine}" +
                               $"{e}");
-                var mailMessage = _mailer.CreateMessageEmail(e.StackTrace,"Error");
-                _mailer.SendReportEmail(mailMessage);
+                var mailer = _serviceProvider.GetService<Mailer>();
+                var mailMessage = mailer.CreateMessageEmail(e.StackTrace,"Error");
+                mailer.SendReportEmail(mailMessage);
             }
-        }
-
-        private void InitializeCiProgram()
-        {
-            _logger = new LoggerFactory
-            {
-                MinimumLevel = LogLevel.Debug
-            }.AddConsole().CreateLogger("CI");
-
-            var ciConfigurationReader = new CiConfigurationReader();
-            _mailer =
-                new Mailer(ciConfigurationReader.GetMailConfiguration());
-            _testRunner = new TestRunner(_logger, ciConfigurationReader, _mailer);
-            _logger.Info("CI Service Initialized!");
         }
     }
 }

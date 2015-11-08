@@ -5,22 +5,22 @@
 
     public class CiConfigurationReader
     {
-        private static IConfiguration configuration;
+        private readonly IConfiguration _configuration;
 
-        public CiConfigurationReader()
+        public CiConfigurationReader(ApplicationConfiguration configuration)
         {
-            configuration =
-                new ConfigurationBuilder().AddJsonFile("config.json")
-                    .Build();
+            _configuration = configuration.Configuration;
         }
+
+        public string ApplicationBasePath { get; set; }
 
         public CiTestConfiguration GetTestConfiguration()
         {
             var ciTestConfiguration = new CiTestConfiguration
             {
-                SolutionPath = configuration["Paths:Solution"],
+                SolutionPath = _configuration["Paths:Solution"],
                 MinutesToWait = new TimeSpan(0,
-                    int.Parse(configuration["Timeing:MinutesToWait"]), 0)
+                    int.Parse(_configuration["Timeing:MinutesToWait"]), 0)
             };
             var count = 0;
             var next = GetTestProject(count++);
@@ -37,20 +37,20 @@
             var ciMailConfiguration = new CiMailConfiguration
             {
                 Sender =
-                    configuration[
+                    _configuration[
                         GetKey(nameof(CiMailConfiguration.Sender))],
                 Password =
-                    configuration[
+                    _configuration[
                         GetKey(nameof(CiMailConfiguration.Password))],
                 SmtpPort =
                     int.Parse(
-                        configuration[
+                        _configuration[
                             GetKey(nameof(CiMailConfiguration.SmtpPort))]),
                 SmtpHost =
-                    configuration[
+                    _configuration[
                         GetKey(nameof(CiMailConfiguration.SmtpHost))],
                 Receiver =
-                    configuration[
+                    _configuration[
                         GetKey(nameof(CiMailConfiguration.Receiver))]
             };
             return ciMailConfiguration;
@@ -61,9 +61,9 @@
             return $"EMail:{property}";
         }
 
-        private static string GetTestProject(int count)
+        private string GetTestProject(int count)
         {
-            return configuration[$"Paths:TestProjects:{count}"];
+            return _configuration[$"Paths:TestProjects:{count}"];
         }
     }
 }
