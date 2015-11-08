@@ -8,6 +8,8 @@ namespace ContinuousIntegration.TestRunner
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
+    using Common.ProcessExecution;
+    using Common.ProcessExecution.Model;
 
     public class TestRunner
     {
@@ -73,11 +75,23 @@ namespace ContinuousIntegration.TestRunner
             StringBuilder stringBuilder)
         {
             Directory.SetCurrentDirectory(testProjectPath);
-            var processExecutor = new OutputCaptureProcessExecutor();
             _logger.Info($"Testing {testProjectPath} project");
-            processExecutor.ExecuteAndWait(DnxInformation.DnxPath,
-                $@"-p ""{testProjectPath}"" test",
-                x => x.Equals("Failed"));
+
+            var instructions = new ProcessInstructions
+            {
+                Program = DnxInformation.DnxPath,
+                Arguments = $@"-p ""{testProjectPath}"" test"
+            };
+            var outputProcessFactory = new OutputProcessFactory
+            {
+                Instructions = instructions
+            };
+            var processExecutor =
+                new FinishingProcessExecutor(outputProcessFactory)
+                {
+                    Instructions = instructions
+                };
+            processExecutor.ExecuteAndWait(x => x.Equals("Failed"));
             _logger.Info("Tests Completed!");
             stringBuilder.Append(processExecutor.Output);
         }

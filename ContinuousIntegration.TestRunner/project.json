@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.0-*",
   "description": "ContinuousIntegration.TestRunner Console Application",
   "authors": [ "mika" ],
@@ -18,7 +18,8 @@
     "Microsoft.Framework.Configuration.UserSecrets": "1.0.0-beta8",
     "Microsoft.Framework.Configuration.EnvironmentVariables": "1.0.0-beta8-15635",
     "Microsoft.Framework.DependencyInjection": "1.0.0-beta8-15621",
-    "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8-15724"
+    "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8-15724",
+    "ProcessExecution": "1.0.0-*"
   },
 
   "commands": {
