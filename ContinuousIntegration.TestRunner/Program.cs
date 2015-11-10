@@ -1,45 +1,52 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
+    using Logging;
     using Microsoft.Dnx.Runtime;
     using Microsoft.Framework.DependencyInjection;
+    using ProcessExecution;
 
     public class Program
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ApplicatinLogger _logger;
+        private readonly ProviderServices _providerServices;
 
         public Program(IApplicationEnvironment env)
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
+            _providerServices = new ServiceCollection()
                 .AddLogging()
-                .AddScoped<ApplicationConfiguration>()
-                .AddScoped<CiConfigurationReader>()
-                .AddScoped<Mailer>()
-                .AddScoped<TestRunner>()
-                .AddScoped<ApplicatinLogger>()
-                .AddInstance(env);
 
-            _serviceProvider = serviceCollection.BuildServiceProvider();
+                .AddSingleton<ApplicationConfiguration>()
+                .AddSingleton<ProviderServices>()
+                .AddSingleton<ProviderModels>()
 
-            _logger = _serviceProvider.GetService<ApplicatinLogger>();
-            _logger.Info("Test Runner Initialized!");
+                .AddScoped<ProcessProviderServices>()
+                .AddScoped<ConfigurationReader>()
+                .AddScoped<ModifiedFileFinder>()
+
+                .AddInstance(env)
+
+                .BuildServiceProvider()
+                .GetService<ProviderServices>();
+
+            _providerServices.ApplicationLogger
+                .Info("Test Runner Initialized!");
         }
 
         public void Main(string[] args)
         {
             try
             {
-                _serviceProvider.GetService<TestRunner>().Run();
+                _providerServices.TestRunner
+                    .Run();
             }
             catch(Exception e)
             {
-                _logger.Error($"Excepion cought : {Environment.NewLine}" +
-                              $"{e}");
-                var mailer = _serviceProvider.GetService<Mailer>();
-                var mailMessage = mailer.CreateMessageEmail(e.StackTrace,"Error");
-                mailer.SendReportEmail(mailMessage);
+                _providerServices.ApplicationLogger
+                    .Error($"Excepion cought : {Environment.NewLine} {e}");
+
+                _providerServices.Mailer
+                    .BuildMailMessage("Error",
+                    e.StackTrace).Send();
             }
         }
     }

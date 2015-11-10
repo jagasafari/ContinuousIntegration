@@ -1,4 +1,4 @@
-﻿namespace ContinuousIntegration.TestRunner
+﻿namespace ContinuousIntegration.TestRunner.Logging
 {
     using System;
     using Microsoft.Framework.Logging;

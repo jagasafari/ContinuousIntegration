@@ -7,40 +7,46 @@ namespace ContinuousIntegration.TestRunner
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Common;
-    using Common.ProcessExecution;
-    using Common.ProcessExecution.Model;
+    using Logging;
+    using Model;
+    using ProcessExecution;
+    using ProcessExecution.Model;
 
     public class TestRunner
     {
-        private readonly ModifiedFileFounder _founder;
-        private readonly ApplicatinLogger _logger;
-        private readonly Mailer _mailer;
-        private readonly CiTestConfiguration _testConfiguration;
+        private readonly ProviderServices _providerServices;
+        private readonly ProcessProviderServices _processProviderServices;
+        private readonly ApplicationLogger _logger;
+        private TestConfiguration _testConfiguration;
         private DateTime _lastRunTime;
 
-        public TestRunner(ApplicatinLogger logger,
-            CiConfigurationReader ciConfigurationReader, Mailer mailer)
+        public TestRunner(ProviderServices providerServices,
+            ProcessProviderServices processProviderServices)
         {
-            _logger = logger;
-            _testConfiguration =
-                ciConfigurationReader.GetTestConfiguration();
-            _mailer = mailer;
+            _providerServices = providerServices;
+            _processProviderServices = processProviderServices;
+            _logger = providerServices.ApplicationLogger;
             _lastRunTime = DateTime.UtcNow.AddYears(-1000);
-            _founder = new ModifiedFileFounder(
-                _logger, _testConfiguration.SolutionPath);
+        }
+
+        public TestRunner(TestConfiguration testConfiguration)
+        {
+            _testConfiguration = testConfiguration;
         }
 
         public void Run()
         {
             while(true)
             {
-                if(_founder.Search(_lastRunTime))
+                if(_providerServices.ModifiedFileFinder
+                    .Search(_lastRunTime, _testConfiguration.SolutionPath))
                 {
                     var testResults = RunTests();
                     _logger.Info("Sending Report email");
-                    _mailer.SendReportEmail(
-                        _mailer.CreateMessageEmail(testResults, "Report"));
+
+                    _providerServices.Mailer
+                        .BuildMailMessage("Result", testResults)
+                        .Send();
                 }
                 else
                 {
@@ -82,16 +88,12 @@ namespace ContinuousIntegration.TestRunner
                 Program = DnxInformation.DnxPath,
                 Arguments = $@"-p ""{testProjectPath}"" test"
             };
-            var outputProcessFactory = new OutputProcessFactory
-            {
-                Instructions = instructions
-            };
-            var processExecutor =
-                new FinishingProcessExecutor(outputProcessFactory)
-                {
-                    Instructions = instructions
-                };
+
+            var processExecutor = _processProviderServices
+                .FinishingProcessExecutor(instructions);
+
             processExecutor.ExecuteAndWait(x => x.Equals("Failed"));
+
             _logger.Info("Tests Completed!");
             stringBuilder.Append(processExecutor.Output);
         }

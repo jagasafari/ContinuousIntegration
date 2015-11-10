@@ -1,15 +1,15 @@
-﻿namespace ContinuousIntegration.TestRunner
+﻿namespace ContinuousIntegration.TestRunner.Logging
 {
     using Microsoft.Framework.Logging;
 
-    public class ApplicatinLogger 
+    public class ApplicationLogger 
     {
         private readonly ILogger _logger;
 
-        public ApplicatinLogger(ILoggerFactory loggerFactory)
+        public ApplicationLogger(ILoggerFactory loggerFactory, string name)
         {
             _logger = loggerFactory.
-                AddConsole(LogLevel.Debug).CreateLogger("Ci");
+                AddConsole(LogLevel.Debug).CreateLogger(name);
         }
 
 

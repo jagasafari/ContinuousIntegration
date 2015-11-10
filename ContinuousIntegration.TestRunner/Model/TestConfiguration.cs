@@ -1,11 +1,11 @@
-﻿namespace ContinuousIntegration.TestRunner
+﻿namespace ContinuousIntegration.TestRunner.Model
 {
     using System;
     using System.Collections.Generic;
 
-    public class CiTestConfiguration
+    public class TestConfiguration
     {
-        public CiTestConfiguration()
+        public TestConfiguration()
         {
             TestProjects=new List<string>();
         }

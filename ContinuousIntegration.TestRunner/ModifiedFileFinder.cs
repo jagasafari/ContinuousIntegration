@@ -3,30 +3,23 @@ namespace ContinuousIntegration.TestRunner
     using System;
     using System.IO;
     using System.Linq;
+    using Logging;
 
-    internal class ModifiedFileFounder
+    public class ModifiedFileFinder
     {
-        private readonly ApplicatinLogger _logger;
-        private readonly string _solutionPath;
+        private readonly ApplicationLogger _logger;
 
-        public ModifiedFileFounder(ApplicatinLogger logger, string solutionPath)
+        public ModifiedFileFinder(ApplicationLogger logger)
         {
             _logger = logger;
-            _solutionPath = solutionPath;
         }
 
-        internal bool Search(DateTime lastRunTime)
+        internal bool Search(DateTime lastRunTime, string solutionPath)
         {
-            return
-                AnyFileModified(new[] { "*.cs", "*.cshtml" },
-                    lastRunTime);
-        }
-        private bool AnyFileModified(string[] patterns, DateTime lastRunTime)
-        {
-            foreach (var pattern in patterns)
+            foreach (var pattern in new[] { "*.cs", "*.cshtml" })
             {
                 var files =
-                    new DirectoryInfo(_solutionPath).GetFiles(pattern,
+                    new DirectoryInfo(solutionPath).GetFiles(pattern,
                         SearchOption.AllDirectories);
                 _logger.Info(
                     $"{files.Length} {pattern} under the solution");

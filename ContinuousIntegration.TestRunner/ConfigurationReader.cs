@@ -1,22 +1,24 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
+    using Mailer.Model;
     using Microsoft.Framework.Configuration;
+    using Model;
 
-    public class CiConfigurationReader
+    public class ConfigurationReader
     {
         private readonly IConfiguration _configuration;
 
-        public CiConfigurationReader(ApplicationConfiguration configuration)
+        public ConfigurationReader(ApplicationConfiguration configuration)
         {
             _configuration = configuration.Configuration;
         }
 
         public string ApplicationBasePath { get; set; }
 
-        public CiTestConfiguration GetTestConfiguration()
+        public TestConfiguration GetTestConfiguration()
         {
-            var ciTestConfiguration = new CiTestConfiguration
+            var ciTestConfiguration = new TestConfiguration
             {
                 SolutionPath = _configuration["Paths:Solution"],
                 MinutesToWait = new TimeSpan(0,
@@ -32,38 +34,30 @@
             return ciTestConfiguration;
         }
 
-        public CiMailConfiguration GetMailConfiguration()
-        {
-            var ciMailConfiguration = new CiMailConfiguration
+        public MailConfiguration GetMailConfiguration() =>
+            new MailConfiguration
             {
                 Sender =
                     _configuration[
-                        GetKey(nameof(CiMailConfiguration.Sender))],
+                        GetKey(nameof(MailConfiguration.Sender))],
                 Password =
                     _configuration[
-                        GetKey(nameof(CiMailConfiguration.Password))],
+                        GetKey(nameof(MailConfiguration.Password))],
                 SmtpPort =
                     int.Parse(
                         _configuration[
-                            GetKey(nameof(CiMailConfiguration.SmtpPort))]),
+                            GetKey(nameof(MailConfiguration.SmtpPort))]),
                 SmtpHost =
                     _configuration[
-                        GetKey(nameof(CiMailConfiguration.SmtpHost))],
+                        GetKey(nameof(MailConfiguration.SmtpHost))],
                 Receiver =
                     _configuration[
-                        GetKey(nameof(CiMailConfiguration.Receiver))]
+                        GetKey(nameof(MailConfiguration.Receiver))]
             };
-            return ciMailConfiguration;
-        }
 
-        private static string GetKey(string property)
-        {
-            return $"EMail:{property}";
-        }
+        private static string GetKey(string property) => $"EMail:{property}";
 
-        private string GetTestProject(int count)
-        {
-            return _configuration[$"Paths:TestProjects:{count}"];
-        }
+        private string GetTestProject(int count) => 
+            _configuration[$"Paths:TestProjects:{count}"];
     }
 }
