@@ -3,15 +3,15 @@ namespace ContinuousIntegration.TestRunner
     using System;
     using System.IO;
     using System.Linq;
-    using Logging;
+    using Microsoft.Extensions.Logging;
 
-    public class ModifiedFileFinder
+    public class FileFinder
     {
-        private readonly ApplicationLogger _logger;
+        private readonly ILogger _logger;
 
-        public ModifiedFileFinder(ApplicationLogger logger)
+        public FileFinder(ProviderServices provider)
         {
-            _logger = logger;
+            _logger = provider.Logger("FileFinder");
         }
 
         internal bool Search(DateTime lastRunTime, string solutionPath)
@@ -21,11 +21,11 @@ namespace ContinuousIntegration.TestRunner
                 var files =
                     new DirectoryInfo(solutionPath).GetFiles(pattern,
                         SearchOption.AllDirectories);
-                _logger.Info(
+                _logger.LogInformation(
                     $"{files.Length} {pattern} under the solution");
                 var modifiedFileFound =
                     files.Any(f => f.LastWriteTimeUtc > lastRunTime);
-                _logger.Info(
+                _logger.LogInformation(
                     $"{modifiedFileFound} that at least one of them was modified since {lastRunTime} minutes");
                 if (modifiedFileFound)
                     return true;

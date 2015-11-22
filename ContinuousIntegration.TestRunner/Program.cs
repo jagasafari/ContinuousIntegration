@@ -1,9 +1,9 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
-    using Logging;
-    using Microsoft.Dnx.Runtime;
-    using Microsoft.Framework.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.PlatformAbstractions;
     using ProcessExecution;
 
     public class Program
@@ -21,15 +21,19 @@
 
                 .AddScoped<ProcessProviderServices>()
                 .AddScoped<ConfigurationReader>()
-                .AddScoped<ModifiedFileFinder>()
+                .AddScoped<FileFinder>()
 
                 .AddInstance(env)
 
                 .BuildServiceProvider()
                 .GetService<ProviderServices>();
 
-            _providerServices.ApplicationLogger
-                .Info("Test Runner Initialized!");
+           _providerServices.LoggerFactory
+                .AddConsole(LogLevel.Information);
+                
+                _providerServices
+                .Logger("TestRunner")
+                .LogInformation("Test Runner Initialized!");
         }
 
         public void Main(string[] args)
@@ -39,10 +43,11 @@
                 _providerServices.TestRunner
                     .Run();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                _providerServices.ApplicationLogger
-                    .Error($"Excepion cought : {Environment.NewLine} {e}");
+                _providerServices
+                    .Logger(nameof(Program))
+                    .LogError($"Excepion cought : {Environment.NewLine} {e}");
 
                 _providerServices.Mailer
                     .BuildMailMessage("Error",

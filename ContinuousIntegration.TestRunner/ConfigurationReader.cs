@@ -2,7 +2,7 @@
 {
     using System;
     using Mailer.Model;
-    using Microsoft.Framework.Configuration;
+    using Microsoft.Extensions.Configuration;
     using Model;
 
     public class ConfigurationReader

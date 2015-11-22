@@ -1,8 +1,8 @@
 ﻿{
   "Paths": {
-    "Solution": "C:\\MyGit\\CodingCode",
+    "Solution": "C:\\MyGit\\Common",
     "TestProjects": {
-      "0": "test\\CodingCode.IntegrationTest"
+      "0": "Common.IntegrationTests"
     }
   },
   "Timeing": {

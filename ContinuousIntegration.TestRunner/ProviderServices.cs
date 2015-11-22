@@ -1,9 +1,9 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
-    using Logging;
     using Mailer;
-    using Microsoft.Framework.Logging;
+    using Microsoft.Extensions.Logging;
+    using ProcessExecution;
 
     public class ProviderServices
     {
@@ -14,26 +14,33 @@
             _serviceProvider = serviceProvider;
         }
 
-        public LoggerFactory LoggerFactory
+        public ILoggerFactory LoggerFactory
             =>
-                ( (LoggerFactory)
-                    _serviceProvider.GetService(typeof(LoggerFactory)) );
+                ((ILoggerFactory)
+                    _serviceProvider.GetService(typeof(ILoggerFactory)));
 
-        public ApplicationLogger ApplicationLogger => new ApplicationLogger(LoggerFactory, "Ci");
+        public ILogger Logger(string name) => LoggerFactory
+            .CreateLogger($"{name}: [{DateTime.UtcNow}]");
 
         public ProviderModels ProviderModels =>
-            ( (ProviderModels)
-                _serviceProvider.GetService(typeof(ProviderModels)) );
+            ((ProviderModels)
+                _serviceProvider.GetService(typeof(ProviderModels)));
 
-        public TestRunner TestRunner => new TestRunner(ProviderModels.TestConfiguration);
+        public TestRunner TestRunner => new TestRunner(ProcessProviderServices,
+            this);
 
-        public Mailer Mailer => new Mailer(ProviderModels.MailConfiguration, 
+        public Mailer Mailer => new Mailer(ProviderModels.MailConfiguration,
             eventSource => $"CI {eventSource} {DateTime.UtcNow}");
 
-        public ModifiedFileFinder ModifiedFileFinder
+        public FileFinder ModifiedFileFinder
             =>
-                ( (ModifiedFileFinder)
-                    _serviceProvider.GetService(typeof(ModifiedFileFinder)) );
+                ((FileFinder)
+                    _serviceProvider.GetService(typeof(FileFinder)));
 
+        private ProcessProviderServices ProcessProviderServices =>
+            (ProcessProviderServices)_serviceProvider.GetService(typeof(ProcessProviderServices));
+
+        public DnxTestRunner DnxTestRunner =>
+            new DnxTestRunner(this, ProcessProviderServices);
     }
 }
