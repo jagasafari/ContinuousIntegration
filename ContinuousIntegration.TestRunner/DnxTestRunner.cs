@@ -2,52 +2,39 @@ namespace ContinuousIntegration.TestRunner
 {
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Common;
-    using ContinuousIntegration.TestRunner.Model;
+    using Common.Core;
     using Microsoft.Extensions.Logging;
-    using ProcessExecution;
-    using ProcessExecution.Model;
+    using Common.ProcessExecution;
+    using Common.ProcessExecution.Model;
 
     public class DnxTestRunner
     {
         private ILogger _logger;
         private readonly ProcessProviderServices _processProviderServices;
-        private TestConfiguration _testConfiguration;
 
         public DnxTestRunner(ProviderServices providerServices,
         ProcessProviderServices processProviderServices)
         {
             var providerServicesTmp = Check.NotNull<ProviderServices>(providerServices);
             _logger = providerServicesTmp.Logger(nameof(DnxTestRunner));
-            _testConfiguration = providerServices.ProviderModels.TestConfiguration;
             
             _processProviderServices = Check.NotNull<ProcessProviderServices>(processProviderServices);
         }
 
-        public string RunTests()
+        public string RunTests(IEnumerable<string> testProjects)
         {
             var stringBuilder = new StringBuilder();
-            Parallel.ForEach(GetTestProjects(),
+            Parallel.ForEach(testProjects,
                 f => { RunTest(f, stringBuilder); });
             return stringBuilder.ToString();
         }
 
-        private IEnumerable<string> GetTestProjects()
-        {
-            return _testConfiguration.TestProjects.Select(
-                testProject =>
-                    Path.Combine(
-                        _testConfiguration.SolutionPath,
-                        testProject));
-        }
         private void RunTest(string testProjectPath,
              StringBuilder stringBuilder)
         {
             Directory.SetCurrentDirectory(testProjectPath);
-            _logger.LogInformation($"Testing {testProjectPath} project");
 
             var instructions = new ProcessInstructions
             {
@@ -56,11 +43,10 @@ namespace ContinuousIntegration.TestRunner
             };
 
             var processExecutor = _processProviderServices
-                .FinishingProcessExecutor(instructions, _logger);
+                .FinishingProcessExecutor(instructions, _logger, x => x.Equals("Failed"));
 
-            processExecutor.ExecuteAndWait(x => x.Equals("Failed"));
+            processExecutor.Execute();
 
-            _logger.LogInformation("Tests Completed!");
             stringBuilder.Append(processExecutor.Output);
         }
     }

@@ -1,12 +1,11 @@
 ﻿{
   "Paths": {
-    "Solution": "C:\\MyGit\\Common",
     "TestProjects": {
-      "0": "Common.IntegrationTests"
+      "0":"C:\\MyGit\\CodingCode\\test\\CodingCode.IntegrationTest"
     }
   },
   "Timeing": {
-    "MinutesToWait": "30"
+    "MinutesToWait": "5"
   },
   "EMail": {
     "SmtpPort": "587",

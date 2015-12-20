@@ -4,7 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.PlatformAbstractions;
-    using ProcessExecution;
+    using Common.ProcessExecution;
 
     public class Program
     {
@@ -17,7 +17,7 @@
 
                 .AddSingleton<ApplicationConfiguration>()
                 .AddSingleton<ProviderServices>()
-                .AddSingleton<ProviderModels>()
+                .AddSingleton<ModelProvider>()
 
                 .AddScoped<ProcessProviderServices>()
                 .AddScoped<ConfigurationReader>()

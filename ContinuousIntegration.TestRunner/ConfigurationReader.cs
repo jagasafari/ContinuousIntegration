@@ -1,7 +1,7 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
-    using Mailer.Model;
+    using Common.Mailer.Model;
     using Microsoft.Extensions.Configuration;
     using Model;
 
@@ -20,7 +20,6 @@
         {
             var ciTestConfiguration = new TestConfiguration
             {
-                SolutionPath = _configuration["Paths:Solution"],
                 MinutesToWait = new TimeSpan(0,
                     int.Parse(_configuration["Timeing:MinutesToWait"]), 0)
             };

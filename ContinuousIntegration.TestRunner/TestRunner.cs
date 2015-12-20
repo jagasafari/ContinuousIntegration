@@ -1,10 +1,13 @@
 namespace ContinuousIntegration.TestRunner
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
     using System.Threading;
-    using Common;
+    using Common.Core;
     using Microsoft.Extensions.Logging;
-    using ProcessExecution;
+    using Common.ProcessExecution;
 
     public class TestRunner
     {
@@ -23,12 +26,15 @@ namespace ContinuousIntegration.TestRunner
             while (true)
             {
                 var logger = _providerServices.Logger(nameof(TestRunner));
-                var testConfiguration = _providerServices.ProviderModels.TestConfiguration;
+                var testConfiguration = _providerServices.ModelProvider.TestConfiguration;
                 
-                if (_providerServices.ModifiedFileFinder
-                    .Search(_lastRunTime, testConfiguration.SolutionPath))
+                var testsToRun = FilterModifiedProjectFiles(testConfiguration.TestProjects).ToList();
+                logger.LogInformation($"{testsToRun.Count} projects to test:");
+                testsToRun.ForEach(logger.LogInformation);
+                
+                if (testsToRun.Any())
                 {
-                    var testResults = _providerServices.DnxTestRunner.RunTests();
+                    var testResults = _providerServices.DnxTestRunner.RunTests(testsToRun);
                                             
                     logger.LogInformation("Sending Report email");
 
@@ -47,5 +53,26 @@ namespace ContinuousIntegration.TestRunner
                 Thread.Sleep(testConfiguration.MinutesToWait);
             }
         }
+
+        private IEnumerable<string> FilterModifiedProjectFiles(List<string> testProjects)
+        {
+            List<string> modifiedProjects=new List<string>();
+            int solutionLevel = 2;
+            foreach (var testProject in testProjects)
+            {
+                if (_providerServices.ModifiedFileFinder
+                    .Search(_lastRunTime,  GetParentDirectory(testProject, solutionLevel)))
+                {
+                    modifiedProjects.Add(testProject);
+                }
+            }
+            return modifiedProjects;
+        }
+        
+       private string GetParentDirectory(string fullPath, int level){
+           while(level-- > 0)
+               fullPath = Directory.GetParent(fullPath).FullName;
+           return fullPath;
+       }
     }
 }

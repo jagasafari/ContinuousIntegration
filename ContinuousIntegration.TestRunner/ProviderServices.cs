@@ -1,9 +1,10 @@
 ﻿namespace ContinuousIntegration.TestRunner
 {
     using System;
-    using Mailer;
+    using Common.Mailer;
     using Microsoft.Extensions.Logging;
-    using ProcessExecution;
+    using Common.ProcessExecution;
+    using Common.Core;
 
     public class ProviderServices
     {
@@ -16,20 +17,20 @@
 
         public ILoggerFactory LoggerFactory
             =>
-                ((ILoggerFactory)
+                Check.NotNull<ILoggerFactory>((ILoggerFactory)
                     _serviceProvider.GetService(typeof(ILoggerFactory)));
 
-        public ILogger Logger(string name) => LoggerFactory
-            .CreateLogger($"{name}: [{DateTime.UtcNow}]");
+        public ILogger Logger(string name) => Check.NotNull<ILogger>(LoggerFactory
+            .CreateLogger($"{name}"));
 
-        public ProviderModels ProviderModels =>
-            ((ProviderModels)
-                _serviceProvider.GetService(typeof(ProviderModels)));
+        public ModelProvider ModelProvider =>
+            Check.NotNull<ModelProvider>((ModelProvider)
+                _serviceProvider.GetService(typeof(ModelProvider)));
 
         public TestRunner TestRunner => new TestRunner(ProcessProviderServices,
             this);
 
-        public Mailer Mailer => new Mailer(ProviderModels.MailConfiguration,
+        public Mailer Mailer => new Mailer(ModelProvider.MailConfiguration,
             eventSource => $"CI {eventSource} {DateTime.UtcNow}");
 
         public FileFinder ModifiedFileFinder
@@ -42,5 +43,8 @@
 
         public DnxTestRunner DnxTestRunner =>
             new DnxTestRunner(this, ProcessProviderServices);
+            
+        public ConfigurationReader ConfigurationReader =>
+            Check.NotNull<ConfigurationReader>((ConfigurationReader)_serviceProvider.GetService(typeof(ConfigurationReader)));
     }
 }
