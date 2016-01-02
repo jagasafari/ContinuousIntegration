@@ -9,9 +9,9 @@ namespace ContinuousIntegration.TestRunner
     {
         private readonly ILogger _logger;
 
-        public FileFinder(ProviderServices provider)
+        public FileFinder(ILogger<FileFinder> logger)
         {
-            _logger = provider.Logger("FileFinder");
+            _logger = logger;
         }
 
         internal bool Search(DateTime lastRunTime, string solutionPath)

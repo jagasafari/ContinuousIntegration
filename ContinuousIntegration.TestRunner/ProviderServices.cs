@@ -4,47 +4,44 @@
     using Common.Mailer;
     using Microsoft.Extensions.Logging;
     using Common.ProcessExecution;
-    using Common.Core;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.PlatformAbstractions;
 
     public class ProviderServices
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public ProviderServices(IServiceProvider serviceProvider)
+        public ProviderServices(IApplicationEnvironment env)
         {
-            _serviceProvider = serviceProvider;
+            _serviceProvider = new ServiceCollection()
+            .AddLogging()
+
+            .AddSingleton<ApplicationConfiguration>()
+            .AddTransient<ModelProvider>()
+
+            .AddTransient<ProcessProviderServices>()
+            .AddTransient<ConfigurationReader>()
+            .AddTransient<FileFinder>()
+            .AddTransient<DnxTestRunner>()
+
+            .AddInstance(env)
+
+            .BuildServiceProvider();
+
+            _serviceProvider.GetService<ILoggerFactory>().AddConsole(LogLevel.Information);
         }
+        
+        public ILogger<TestRunner> TestRunnerLogger => _serviceProvider.GetService<ILogger<TestRunner>>();
+        public ILogger<Program> ProgramLogger => _serviceProvider.GetService<ILogger<Program>>();
 
-        public ILoggerFactory LoggerFactory
-            =>
-                Check.NotNull<ILoggerFactory>((ILoggerFactory)
-                    _serviceProvider.GetService(typeof(ILoggerFactory)));
-
-        public ILogger Logger(string name) => Check.NotNull<ILogger>(LoggerFactory
-            .CreateLogger($"{name}"));
-
-        public ModelProvider ModelProvider =>
-            Check.NotNull<ModelProvider>((ModelProvider)
-                _serviceProvider.GetService(typeof(ModelProvider)));
-
-        public TestRunner TestRunner => new TestRunner(ProcessProviderServices,
-            this);
+        public ModelProvider ModelProvider => _serviceProvider.GetService<ModelProvider>();
 
         public Mailer Mailer => new Mailer(ModelProvider.MailConfiguration,
             eventSource => $"CI {eventSource} {DateTime.UtcNow}");
 
-        public FileFinder ModifiedFileFinder
-            =>
-                ((FileFinder)
-                    _serviceProvider.GetService(typeof(FileFinder)));
+        public FileFinder ModifiedFileFinder => _serviceProvider.GetService<FileFinder>();
 
-        private ProcessProviderServices ProcessProviderServices =>
-            (ProcessProviderServices)_serviceProvider.GetService(typeof(ProcessProviderServices));
+        public DnxTestRunner DnxTestRunner => _serviceProvider.GetService<DnxTestRunner>();
 
-        public DnxTestRunner DnxTestRunner =>
-            new DnxTestRunner(this, ProcessProviderServices);
-            
-        public ConfigurationReader ConfigurationReader =>
-            Check.NotNull<ConfigurationReader>((ConfigurationReader)_serviceProvider.GetService(typeof(ConfigurationReader)));
     }
 }

@@ -5,19 +5,16 @@ namespace ContinuousIntegration.TestRunner
     using System.IO;
     using System.Linq;
     using System.Threading;
-    using Common.Core;
     using Microsoft.Extensions.Logging;
-    using Common.ProcessExecution;
 
     public class TestRunner
     {
         private readonly ProviderServices _providerServices;
         private DateTime _lastRunTime;
 
-        public TestRunner(ProcessProviderServices processProviderServices,
-            ProviderServices providerServices)
+        public TestRunner(ProviderServices providerServices)
         {
-            _providerServices = Check.NotNull<ProviderServices>(providerServices);
+            _providerServices = providerServices;
             _lastRunTime = DateTime.UtcNow.AddYears(-1000);
         }
 
@@ -25,7 +22,7 @@ namespace ContinuousIntegration.TestRunner
         {
             while (true)
             {
-                var logger = _providerServices.Logger(nameof(TestRunner));
+                var logger = _providerServices.TestRunnerLogger;
                 var testConfiguration = _providerServices.ModelProvider.TestConfiguration;
                 
                 var testsToRun = FilterModifiedProjectFiles(testConfiguration.TestProjects).ToList();

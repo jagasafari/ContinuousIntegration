@@ -4,23 +4,19 @@ namespace ContinuousIntegration.TestRunner
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
-    using Common.Core;
     using Microsoft.Extensions.Logging;
     using Common.ProcessExecution;
-    using Common.ProcessExecution.Model;
 
     public class DnxTestRunner
     {
         private ILogger _logger;
         private readonly ProcessProviderServices _processProviderServices;
 
-        public DnxTestRunner(ProviderServices providerServices,
-        ProcessProviderServices processProviderServices)
+        public DnxTestRunner(ProcessProviderServices processProviderServices,
+            ILogger<DnxTestRunner> logger)
         {
-            var providerServicesTmp = Check.NotNull<ProviderServices>(providerServices);
-            _logger = providerServicesTmp.Logger(nameof(DnxTestRunner));
-            
-            _processProviderServices = Check.NotNull<ProcessProviderServices>(processProviderServices);
+            _logger = logger;
+            _processProviderServices = processProviderServices;
         }
 
         public string RunTests(IEnumerable<string> testProjects)
@@ -36,14 +32,8 @@ namespace ContinuousIntegration.TestRunner
         {
             Directory.SetCurrentDirectory(testProjectPath);
 
-            var instructions = new ProcessInstructions
-            {
-                Program = DnxInformation.DnxPath,
-                Arguments = $@"-p ""{testProjectPath}"" test"
-            };
-
             var processExecutor = _processProviderServices
-                .FinishingProcessExecutor(instructions, _logger, x => x.Equals("Failed"));
+                .FinishingExecutor(DnxInformation.DnxPath, $@"-p ""{testProjectPath}"" test", x => x.Equals("Failed"));
 
             processExecutor.Execute();
 
