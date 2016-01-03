@@ -6,6 +6,8 @@
     using Common.ProcessExecution;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.PlatformAbstractions;
+    using ContinuousIntegration.TestRunner.Services;
+    using ContinuousIntegration.TestRunner.Abstraction;
 
     public class ProviderServices
     {
@@ -17,12 +19,14 @@
             .AddLogging()
 
             .AddSingleton<ApplicationConfiguration>()
-            .AddTransient<ModelProvider>()
-
-            .AddTransient<ProcessProviderServices>()
-            .AddTransient<ConfigurationReader>()
-            .AddTransient<FileFinder>()
+            
+            .AddProceesProviderServices()
+            
+            .AddTransient<ModifiedCodeTestsFinder>()
             .AddTransient<DnxTestRunner>()
+            .AddTransient<TestRunner>()
+            .AddTransient<IMailServiceFactory, MailServiceFactory>()
+            .AddTransient<IConfigurationReader, ConfigurationReader>()
 
             .AddInstance(env)
 
@@ -31,17 +35,11 @@
             _serviceProvider.GetService<ILoggerFactory>().AddConsole(LogLevel.Information);
         }
         
-        public ILogger<TestRunner> TestRunnerLogger => _serviceProvider.GetService<ILogger<TestRunner>>();
         public ILogger<Program> ProgramLogger => _serviceProvider.GetService<ILogger<Program>>();
 
-        public ModelProvider ModelProvider => _serviceProvider.GetService<ModelProvider>();
+        public IMailService MailService => _serviceProvider.GetService<IMailServiceFactory>().Create();
 
-        public Mailer Mailer => new Mailer(ModelProvider.MailConfiguration,
-            eventSource => $"CI {eventSource} {DateTime.UtcNow}");
-
-        public FileFinder ModifiedFileFinder => _serviceProvider.GetService<FileFinder>();
-
-        public DnxTestRunner DnxTestRunner => _serviceProvider.GetService<DnxTestRunner>();
+        public TestRunner TestRunner => _serviceProvider.GetService<TestRunner>();
 
     }
 }

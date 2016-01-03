@@ -1,20 +1,36 @@
-namespace ContinuousIntegration.TestRunner
+namespace ContinuousIntegration.TestRunner.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Common.Core;
     using Microsoft.Extensions.Logging;
 
-    public class FileFinder
+    public class ModifiedCodeTestsFinder
     {
         private readonly ILogger _logger;
 
-        public FileFinder(ILogger<FileFinder> logger)
+        public ModifiedCodeTestsFinder(ILogger<ModifiedCodeTestsFinder> logger)
         {
             _logger = logger;
         }
 
-        internal bool Search(DateTime lastRunTime, string solutionPath)
+        public List<string> FilterTestProjects(List<string> testProjects, DateTime lastRunTime)
+        {
+            var modifiedProjects = new List<string>();
+            int solutionLevel = 2;
+            foreach (var testProject in testProjects)
+            {
+                if (Search(lastRunTime, testProject.GetParentDirectory(solutionLevel)))
+                {
+                    modifiedProjects.Add(testProject);
+                }
+            }
+            return modifiedProjects;
+        }
+
+        private bool Search(DateTime lastRunTime, string solutionPath)
         {
             foreach (var pattern in new[] { "*.cs", "*.cshtml" })
             {

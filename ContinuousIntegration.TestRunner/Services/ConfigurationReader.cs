@@ -1,11 +1,13 @@
-﻿namespace ContinuousIntegration.TestRunner
+﻿namespace ContinuousIntegration.TestRunner.Services
 {
     using System;
+    using Common.Core;
     using Common.Mailer.Model;
+    using ContinuousIntegration.TestRunner.Abstraction;
+    using ContinuousIntegration.TestRunner.Model;
     using Microsoft.Extensions.Configuration;
-    using Model;
 
-    public class ConfigurationReader
+    public class ConfigurationReader : IConfigurationReader
     {
         private readonly IConfiguration _configuration;
 
@@ -14,26 +16,32 @@
             _configuration = configuration.Configuration;
         }
 
-        public string ApplicationBasePath { get; set; }
+        public TestConfiguration TestConfiguration => 
+            Check.NotNull<TestConfiguration>(GetTestConfiguration());
 
-        public TestConfiguration GetTestConfiguration()
+        public MailConfiguration MailConfiguration => 
+            Check.NotNull<MailConfiguration>(GetMailConfiguration());
+            
+        private TestConfiguration GetTestConfiguration()
         {
-            var ciTestConfiguration = new TestConfiguration
+            var testConfiguration = new TestConfiguration
             {
-                MinutesToWait = new TimeSpan(0,
-                    int.Parse(_configuration["Timeing:MinutesToWait"]), 0)
+                MinutesToWait = new TimeSpan(0, int.Parse(_configuration["Timeing:MinutesToWait"]), 0)
             };
             var count = 0;
             var next = GetTestProject(count++);
             while(next != null)
             {
-                ciTestConfiguration.TestProjects.Add(next);
+                testConfiguration.TestProjects.Add(next);
                 next = GetTestProject(count++);
             }
-            return ciTestConfiguration;
+            return testConfiguration;
         }
 
-        public MailConfiguration GetMailConfiguration() =>
+        private string GetTestProject(int count) => 
+            _configuration[$"Paths:TestProjects:{count}"];
+            
+        private MailConfiguration GetMailConfiguration() =>
             new MailConfiguration
             {
                 Sender =
@@ -55,8 +63,5 @@
             };
 
         private static string GetKey(string property) => $"EMail:{property}";
-
-        private string GetTestProject(int count) => 
-            _configuration[$"Paths:TestProjects:{count}"];
     }
 }

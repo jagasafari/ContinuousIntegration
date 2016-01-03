@@ -1,4 +1,4 @@
-namespace ContinuousIntegration.TestRunner
+namespace ContinuousIntegration.TestRunner.Services
 {
     using System.Collections.Generic;
     using System.IO;
@@ -6,24 +6,24 @@ namespace ContinuousIntegration.TestRunner
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Common.ProcessExecution;
+    using Common.ProcessExecution.Abstraction;
 
     public class DnxTestRunner
     {
         private ILogger _logger;
-        private readonly ProcessProviderServices _processProviderServices;
+        private readonly IFinishingExecutorFactory _processExecutorFactory;
 
-        public DnxTestRunner(ProcessProviderServices processProviderServices,
+        public DnxTestRunner(IFinishingExecutorFactory executorFactory,
             ILogger<DnxTestRunner> logger)
         {
             _logger = logger;
-            _processProviderServices = processProviderServices;
+            _processExecutorFactory = executorFactory;
         }
 
         public string RunTests(IEnumerable<string> testProjects)
         {
             var stringBuilder = new StringBuilder();
-            Parallel.ForEach(testProjects,
-                f => { RunTest(f, stringBuilder); });
+            Parallel.ForEach(testProjects, testProject => { RunTest(testProject, stringBuilder); });
             return stringBuilder.ToString();
         }
 
@@ -31,12 +31,8 @@ namespace ContinuousIntegration.TestRunner
              StringBuilder stringBuilder)
         {
             Directory.SetCurrentDirectory(testProjectPath);
-
-            var processExecutor = _processProviderServices
-                .FinishingExecutor(DnxInformation.DnxPath, $@"-p ""{testProjectPath}"" test", x => x.Equals("Failed"));
-
+            var processExecutor = _processExecutorFactory.Create(DnxInformation.DnxPath, $@"-p ""{testProjectPath}"" test", x => x.Equals("Failed"));
             processExecutor.Execute();
-
             stringBuilder.Append(processExecutor.Output);
         }
     }
