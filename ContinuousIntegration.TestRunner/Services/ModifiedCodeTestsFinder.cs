@@ -5,9 +5,10 @@ namespace ContinuousIntegration.TestRunner.Services
     using System.IO;
     using System.Linq;
     using Common.Core;
+    using ContinuousIntegration.TestRunner.Abstraction;
     using Microsoft.Extensions.Logging;
 
-    public class ModifiedCodeTestsFinder
+    public class ModifiedCodeTestsFinder : IModifiedCodeTestsFinder
     {
         private readonly ILogger _logger;
 
@@ -16,7 +17,7 @@ namespace ContinuousIntegration.TestRunner.Services
             _logger = logger;
         }
 
-        public List<string> FilterTestProjects(List<string> testProjects, DateTime lastRunTime)
+        public List<string> FilterTestProjects(string[] testProjects, DateTime lastRunTime)
         {
             var modifiedProjects = new List<string>();
             int solutionLevel = 2;
@@ -43,8 +44,7 @@ namespace ContinuousIntegration.TestRunner.Services
                     files.Any(f => f.LastWriteTimeUtc > lastRunTime);
                 _logger.LogInformation(
                     $"{modifiedFileFound} that at least one of them was modified since {lastRunTime} minutes");
-                if (modifiedFileFound)
-                    return true;
+                if (modifiedFileFound) return true;
             }
             return false;
         }

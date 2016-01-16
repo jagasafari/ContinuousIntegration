@@ -2,17 +2,22 @@ namespace ContinuousIntegration.TestRunner.Services
 {
     using System;
     using Common.Mailer;
+    using Common.Mailer.Model;
     using ContinuousIntegration.TestRunner.Abstraction;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.OptionsModel;
 
     public class MailServiceFactory : IMailServiceFactory{
-        private readonly IConfigurationReader _configurationReader;
-        public MailServiceFactory(IConfigurationReader configurationReader)
+        private MailConfiguration _configurations;
+        private ILogger<MailService> _logger;
+        public MailServiceFactory(IOptions<MailConfiguration> options, ILogger<MailService> logger)
         {
-            _configurationReader= configurationReader;
+            _configurations = options.Value;
+            _logger=logger;
         }
         
         public IMailService Create(){
-            return new MailService(_configurationReader.MailConfiguration, eventSource => $"CI {eventSource} {DateTime.UtcNow}");
+            return new MailService(_configurations, eventSource => $"CI {eventSource} {DateTime.UtcNow}", _logger);
         }
     }
 }

@@ -7,33 +7,27 @@ namespace ContinuousIntegration.TestRunner.Services
     using ContinuousIntegration.TestRunner.Model;
     using Microsoft.Extensions.Logging;
 
-    public class TestRunner
+    public class TestRunner : ITestRunner
     {
         private DateTime _lastRunTime;
         private ILogger<TestRunner> _logger;
-        private ModifiedCodeTestsFinder _testsFinder;
-        private DnxTestRunner _dnxTestRunner;
+        private IModifiedCodeTestsFinder _testsFinder;
+        private IDnxTestRunner _dnxTestRunner;
         private TestConfiguration _testConfiguration;
 
-        public TestRunner(ILogger<TestRunner> logger, IConfigurationReader configurationReader,
-            ModifiedCodeTestsFinder testsFinder, DnxTestRunner dnxTestRunner)
+        public TestRunner(ILogger<TestRunner> logger, TestConfiguration testOptions,
+            IModifiedCodeTestsFinder testsFinder, IDnxTestRunner dnxTestRunner)
         {
             _logger = logger;
-            _testConfiguration = configurationReader.TestConfiguration;
             _testsFinder = testsFinder;
             _dnxTestRunner = dnxTestRunner;
+            
+            _testConfiguration = testOptions;
             _lastRunTime = DateTime.UtcNow.AddYears(-1000);
         }
         
         public event EventHandler<TestsCompletedEventArgs> TestsCompleted;
         
-        protected virtual void OnTestsCompleted(TestsCompletedEventArgs e){
-            var handler = TestsCompleted;
-            if(handler!=null)
-            {
-                handler(this, e);
-            }
-        }
         public void Run()
         {
             var testsToRun = _testsFinder.FilterTestProjects(_testConfiguration.TestProjects, _lastRunTime);
@@ -58,5 +52,15 @@ namespace ContinuousIntegration.TestRunner.Services
 
             Thread.Sleep(_testConfiguration.MinutesToWait);
         }
+        
+        protected virtual void OnTestsCompleted(TestsCompletedEventArgs e){
+            var handler = TestsCompleted;
+            if(handler!=null)
+            {
+                handler(this, e);
+            }
+        }
+        
+
     }
 }

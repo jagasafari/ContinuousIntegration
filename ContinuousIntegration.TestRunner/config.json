@@ -1,14 +1,7 @@
 ﻿{
-  "Paths": {
-    "TestProjects": {
-      "0":"C:\\MyGit\\CodingCode\\test\\CodingCode.IntegrationTest"
-    }
-  },
-  "Timeing": {
-    "MinutesToWait": "5"
-  },
-  "EMail": {
-    "SmtpPort": "587",
-    "SmtpHost": "smtp.gmail.com"
-  }
+  "Dnx":"C:\\Users\\mika\\.dnx\\runtimes\\dnx-clr-win-x86.1.0.0-rc1-final\\bin\\dnx.exe",
+  "TestProjects": "C:\\MyGit\\CodingCode\\test\\CodingCode.IntegrationTest",
+  "MinutesToWait": "5",
+  "SmtpPort": "587",
+  "SmtpHost": "smtp.gmail.com"
 }
